@@ -48,6 +48,9 @@ class SignupPage extends StatelessWidget {
           .doc(uid)
           .set(newUser.toMap())
           .then((value) {
+        _emailcontroller.clear();
+        _passcontroller.clear();
+        _cPasscontroller.clear();
         print("New User Created!");
         // TODO: GO to Profile Page
       });

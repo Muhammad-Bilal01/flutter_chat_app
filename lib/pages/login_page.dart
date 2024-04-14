@@ -1,8 +1,55 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/models/user_model.dart';
 import 'package:flutter_chat_app/pages/signup_page.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+  LoginPage({super.key});
+
+  TextEditingController _emailcontroller = TextEditingController();
+  TextEditingController _passcontroller = TextEditingController();
+
+// checkValues
+  void checkValues() {
+    String email = _emailcontroller.text.toString().trim();
+    String password = _passcontroller.text.toString().trim();
+
+    if (email == '' || password == "") {
+      print("ERROR: Please enter all the fields");
+    } else if (!email.contains('@')) {
+      print("ERROR: Please enter valid email");
+    } else {
+      login(email, password);
+    }
+  }
+
+// Login
+  void login(String email, String password) async {
+    UserCredential? credential;
+
+    try {
+      credential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (exc) {
+      print(exc.message.toString());
+    }
+
+    if (credential != null) {
+      String uid = credential.user!.uid;
+      DocumentSnapshot snapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      UserModel userData =
+          UserModel.fromMap(snapshot.data() as Map<String, dynamic>);
+
+      // TODO: GO TO Home Page
+      print("SUCCESS: Login");
+
+      // clear feilds
+      _emailcontroller.clear();
+      _passcontroller.clear();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +71,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   TextFormField(
+                    controller: _emailcontroller,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
                       labelText: "Email",
@@ -32,6 +80,7 @@ class LoginPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   TextFormField(
+                    controller: _passcontroller,
                     obscureText: true,
                     decoration: const InputDecoration(
                       labelText: "Password",
@@ -46,7 +95,9 @@ class LoginPage extends StatelessWidget {
                           backgroundColor:
                               Theme.of(context).colorScheme.secondary,
                           foregroundColor: Colors.white),
-                      onPressed: () {},
+                      onPressed: () {
+                        checkValues();
+                      },
                       child: const Text("Login"),
                     ),
                   ),
