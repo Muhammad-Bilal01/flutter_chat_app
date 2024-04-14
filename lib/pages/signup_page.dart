@@ -12,7 +12,7 @@ class SignupPage extends StatelessWidget {
   TextEditingController _cPasscontroller = TextEditingController();
 
 // checkValues
-  void checkValues() {
+  void checkValues(BuildContext context) {
     String email = _emailcontroller.text.toString().trim();
     String password = _passcontroller.text.toString().trim();
     String cPassword = _cPasscontroller.text.toString().trim();
@@ -24,12 +24,12 @@ class SignupPage extends StatelessWidget {
     } else if (password != cPassword) {
       print("ERROR: Password not match");
     } else {
-      signup(email, password);
+      signup(email, password, context);
     }
   }
 
 // Signup
-  void signup(String email, String password) async {
+  void signup(String email, String password, BuildContext context) async {
     UserCredential? credential;
 
     try {
@@ -52,7 +52,15 @@ class SignupPage extends StatelessWidget {
         _passcontroller.clear();
         _cPasscontroller.clear();
         print("New User Created!");
-        // TODO: GO to Profile Page
+        //  GO to Profile Page
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ProfilePage(
+                usermodel: newUser,
+                firebaseUser: credential!.user!,
+              ),
+            ));
       });
     }
   }
@@ -112,12 +120,7 @@ class SignupPage extends StatelessWidget {
                               Theme.of(context).colorScheme.secondary,
                           foregroundColor: Colors.white),
                       onPressed: () {
-                        checkValues();
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //       builder: (context) => const ProfilePage(),
-                        //     ));
+                        checkValues(context);
                       },
                       child: const Text("Signup"),
                     ),

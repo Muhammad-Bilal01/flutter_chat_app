@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/models/user_model.dart';
+import 'package:flutter_chat_app/pages/home_page.dart';
 import 'package:flutter_chat_app/pages/signup_page.dart';
 
 class LoginPage extends StatelessWidget {
@@ -11,7 +12,7 @@ class LoginPage extends StatelessWidget {
   TextEditingController _passcontroller = TextEditingController();
 
 // checkValues
-  void checkValues() {
+  void checkValues(BuildContext context) {
     String email = _emailcontroller.text.toString().trim();
     String password = _passcontroller.text.toString().trim();
 
@@ -20,12 +21,12 @@ class LoginPage extends StatelessWidget {
     } else if (!email.contains('@')) {
       print("ERROR: Please enter valid email");
     } else {
-      login(email, password);
+      login(email, password, context);
     }
   }
 
 // Login
-  void login(String email, String password) async {
+  void login(String email, String password, BuildContext context) async {
     UserCredential? credential;
 
     try {
@@ -44,6 +45,12 @@ class LoginPage extends StatelessWidget {
 
       // TODO: GO TO Home Page
       print("SUCCESS: Login");
+      Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                HomePage(userModel: userData, firebaseUser: credential!.user!),
+          ));
 
       // clear feilds
       _emailcontroller.clear();
@@ -96,7 +103,7 @@ class LoginPage extends StatelessWidget {
                               Theme.of(context).colorScheme.secondary,
                           foregroundColor: Colors.white),
                       onPressed: () {
-                        checkValues();
+                        checkValues(context);
                       },
                       child: const Text("Login"),
                     ),
