@@ -53,6 +53,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
       //  to update last message
       widget.chatroomModel.lastMessage = message;
+      widget.chatroomModel.updatedOn = DateTime.now();
       FirebaseFirestore.instance
           .collection('chatrooms')
           .doc(widget.chatroomModel.chatRoomId)

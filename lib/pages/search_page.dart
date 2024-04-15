@@ -47,6 +47,11 @@ class _SearchPageState extends State<SearchPage> {
           targetUser.uid.toString(): true,
         },
         lastMessage: "",
+        updatedOn: DateTime.now(),
+        users: [
+          widget.userModel.uid.toString(),
+          targetUser.uid.toString(),
+        ],
       );
 
       await FirebaseFirestore.instance

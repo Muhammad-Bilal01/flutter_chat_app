@@ -41,7 +41,8 @@ class HomePage extends StatelessWidget {
           child: StreamBuilder(
             stream: FirebaseFirestore.instance
                 .collection('chatrooms')
-                .where('participants.${userModel.uid}', isEqualTo: true)
+                .where('users', arrayContains: userModel.uid)
+                .orderBy('updatedOn')
                 .snapshots(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.active) {
