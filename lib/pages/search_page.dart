@@ -1,6 +1,10 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/helper/utils.dart';
+import 'package:flutter_chat_app/models/chatroom_model.dart';
 import 'package:flutter_chat_app/models/user_model.dart';
 import 'package:flutter_chat_app/pages/chat_room_page.dart';
 
@@ -15,7 +19,46 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
+
+  // get Chatroom
+  Future<ChatRoomModel?> getChatRoomModel(UserModel targetUser) async {
+    ChatRoomModel chatroom;
+
+    QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('chatrooms')
+        .where('participants.${widget.userModel.uid}', isEqualTo: true)
+        .where('participants.${targetUser.uid}', isEqualTo: true)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      // fetch the existing one
+      var docData = snapshot.docs[0].data();
+      ChatRoomModel existingChat =
+          ChatRoomModel.fromMap(docData as Map<String, dynamic>);
+
+      log("Existing Chatroom!");
+      chatroom = existingChat;
+    } else {
+      ChatRoomModel newChatroom = ChatRoomModel(
+        chatRoomId: uuid.v1(),
+        participants: {
+          widget.userModel.uid.toString(): true,
+          targetUser.uid.toString(): true,
+        },
+        lastMessage: "",
+      );
+
+      await FirebaseFirestore.instance
+          .collection("chatrooms")
+          .doc(newChatroom.chatRoomId)
+          .set(newChatroom.toMap());
+
+      log("New Chatroom Created!");
+      chatroom = newChatroom;
+    }
+    return chatroom;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,9 +97,8 @@ class _SearchPageState extends State<SearchPage> {
                   .collection('users')
                   .where('email',
                       isEqualTo: _searchController.text.toString().trim())
+                  .where('email', isNotEqualTo: widget.userModel.email)
                   .snapshots(),
-
-              // .where('email', isNotEqualTo: widget.userModel.email)
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.active) {
                   if (snapshot.hasData) {
@@ -68,12 +110,23 @@ class _SearchPageState extends State<SearchPage> {
 
                       UserModel searchedUser = UserModel.fromMap(userMap);
                       return ListTile(
-                        onTap: () {
-                          Navigator.pushReplacement(context, MaterialPageRoute(
-                            builder: (context) {
-                              return const ChatRoomPage();
-                            },
-                          ));
+                        onTap: () async {
+                          ChatRoomModel? chatroomModel =
+                              await getChatRoomModel(searchedUser);
+
+                          if (chatroomModel != null) {
+                            Navigator.pushReplacement(context,
+                                MaterialPageRoute(
+                              builder: (context) {
+                                return ChatRoomPage(
+                                  currentUser: widget.userModel,
+                                  targetUser: searchedUser,
+                                  firebaseUser: widget.firebaseUser,
+                                  chatroomModel: chatroomModel,
+                                );
+                              },
+                            ));
+                          }
                         },
                         leading: CircleAvatar(
                           backgroundColor: Colors.grey[500],
