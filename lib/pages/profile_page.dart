@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/helper/ui_helper.dart';
 import 'package:flutter_chat_app/models/user_model.dart';
 import 'package:flutter_chat_app/pages/home_page.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -29,13 +30,16 @@ class _ProfilePageState extends State<ProfilePage> {
   void checkValues() {
     String fullName = _nameController.text.toString().trim();
     if (fullName == "" || imageFile == null) {
-      print("ERROR: Please Insert all Feilds");
+      UiHelper.showAlertDialog(context, "Missing Fields",
+          "Please Insert all Feilds and insert image");
+      // print("ERROR: Please Insert all Feilds");
     } else {
       uploadData();
     }
   }
 
   void uploadData() async {
+    UiHelper.showLoadingDialog(context, "Uploading Image...");
     UploadTask uploadTask = FirebaseStorage.instance
         .ref('profile-pictures')
         .child(widget.usermodel!.uid.toString())
@@ -54,6 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
         .doc(widget.usermodel!.uid.toString())
         .set(widget.usermodel!.toMap())
         .then((value) {
+      Navigator.popUntil(context, (route) => route.isFirst);
       Navigator.pushReplacement(context, MaterialPageRoute(
         builder: (context) {
           return HomePage(

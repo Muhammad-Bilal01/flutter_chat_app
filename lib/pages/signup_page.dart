@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/helper/ui_helper.dart';
 import 'package:flutter_chat_app/models/user_model.dart';
 import 'package:flutter_chat_app/pages/profile_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -18,10 +19,16 @@ class SignupPage extends StatelessWidget {
     String cPassword = _cPasscontroller.text.toString().trim();
 
     if (email == '' || password == "" || cPassword == '') {
-      print("ERROR: Please enter all the fields");
+      UiHelper.showAlertDialog(
+          context, "Missing Fields", "Please Insert all Feilds");
+      // print("ERROR: Please enter all the fields");
     } else if (!email.contains('@')) {
-      print("ERROR: Please enter valid email");
+      UiHelper.showAlertDialog(
+          context, "Invalid Email", "Please Enter correct email");
+      //  print("ERROR: Please enter valid email");
     } else if (password != cPassword) {
+      UiHelper.showAlertDialog(
+          context, "Password Mismatch", "Please enter same password");
       print("ERROR: Password not match");
     } else {
       signup(email, password, context);
@@ -31,12 +38,16 @@ class SignupPage extends StatelessWidget {
 // Signup
   void signup(String email, String password, BuildContext context) async {
     UserCredential? credential;
+    UiHelper.showLoadingDialog(context, "Loading...");
 
     try {
       credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
     } on FirebaseAuthException catch (exc) {
-      print(exc.code.toString());
+      Navigator.pop(context);
+      UiHelper.showAlertDialog(
+          context, "Error Occured", exc.message.toString());
+      // print(exc.code.toString());
     }
 
     if (credential != null) {
@@ -53,6 +64,7 @@ class SignupPage extends StatelessWidget {
         _cPasscontroller.clear();
         print("New User Created!");
         //  GO to Profile Page
+        Navigator.popUntil(context, (route) => route.isFirst);
         Navigator.push(
             context,
             MaterialPageRoute(

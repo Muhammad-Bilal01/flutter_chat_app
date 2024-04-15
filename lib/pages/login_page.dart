@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_chat_app/helper/ui_helper.dart';
 import 'package:flutter_chat_app/models/user_model.dart';
 import 'package:flutter_chat_app/pages/home_page.dart';
 import 'package:flutter_chat_app/pages/signup_page.dart';
@@ -17,9 +18,13 @@ class LoginPage extends StatelessWidget {
     String password = _passcontroller.text.toString().trim();
 
     if (email == '' || password == "") {
-      print("ERROR: Please enter all the fields");
+      UiHelper.showAlertDialog(
+          context, "Invalid Data", "Please enter all the fields");
+      //  print("ERROR: Please enter all the fields");
     } else if (!email.contains('@')) {
-      print("ERROR: Please enter valid email");
+      UiHelper.showAlertDialog(
+          context, "Invalid Data", "Please enter valid email");
+      // print("ERROR: Please enter valid email");
     } else {
       login(email, password, context);
     }
@@ -28,12 +33,15 @@ class LoginPage extends StatelessWidget {
 // Login
   void login(String email, String password, BuildContext context) async {
     UserCredential? credential;
+    UiHelper.showLoadingDialog(context, "Loading...");
 
     try {
       credential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
     } on FirebaseAuthException catch (exc) {
-      print(exc.message.toString());
+      Navigator.pop(context);
+      UiHelper.showAlertDialog(
+          context, "Error Occured", exc.message.toString());
     }
 
     if (credential != null) {
@@ -44,7 +52,8 @@ class LoginPage extends StatelessWidget {
           UserModel.fromMap(snapshot.data() as Map<String, dynamic>);
 
       // TODO: GO TO Home Page
-      print("SUCCESS: Login");
+      //  print("SUCCESS: Login");
+      Navigator.popUntil(context, (route) => route.isFirst);
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
