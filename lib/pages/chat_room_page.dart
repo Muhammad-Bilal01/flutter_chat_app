@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/helper/utils.dart';
 import 'package:flutter_chat_app/models/chatroom_model.dart';
@@ -49,6 +50,13 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
           .collection('messages')
           .doc(newMessage.messageId)
           .set(newMessage.toMap());
+
+      //  to update last message
+      widget.chatroomModel.lastMessage = message;
+      FirebaseFirestore.instance
+          .collection('chatrooms')
+          .doc(widget.chatroomModel.chatRoomId)
+          .set(widget.chatroomModel.toMap());
 
       log("Message Sent!");
     }
